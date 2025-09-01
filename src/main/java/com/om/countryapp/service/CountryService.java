@@ -5,6 +5,8 @@ import com.om.countryapp.model.Country;
 import com.om.countryapp.model.CountryDetails;
 import com.om.countryapp.response.CountryDetailResponse;
 import com.om.countryapp.response.CountryResponse;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.util.retry.Retry;
@@ -18,12 +20,15 @@ public class CountryService {
 
     private final WebClient webClient;
     private final CustomMapper mapper;
+    private final CacheManager myCacheManager;
 
-    public CountryService(WebClient webClient, CustomMapper mapper) {
+    public CountryService(WebClient webClient, CustomMapper mapper, CacheManager myCacheManager) {
         this.webClient = webClient;
         this.mapper = mapper;
+        this.myCacheManager = myCacheManager;
     }
 
+    @Cacheable(value = "CountryCache", cacheManager = "myCacheManager", unless="#result == null")
     public List<Country> getAllCountries() {
 
         List<Country> countries = new ArrayList<>();
@@ -41,8 +46,9 @@ public class CountryService {
         return countries;
     }
 
-    public List<CountryDetails> getCountryDetails() {
-        List<CountryDetails> countryDetails = new ArrayList<>();
+    @Cacheable(value = "CountryDetailsCache", cacheManager = "myCacheManager", unless="#result == null")
+    public CountryDetails getCountryDetails(final String countryName) {
+        CountryDetails countryDetails;
         List<CountryDetailResponse> countryDetailResponses = webClient.get()
                 .uri("?fields=name,flags,capital,population")
                 .retrieve()
@@ -53,9 +59,9 @@ public class CountryService {
                 .block();
 
         assert countryDetailResponses != null;
-        for(CountryDetailResponse countryDetailResponse : countryDetailResponses) {
-            countryDetails.add(mapper.countryDetailsToCountryDetailResponse(countryDetailResponse));
-        }
+        CountryDetailResponse countryDetailResponse = countryDetailResponses.stream().filter(country -> country.name().common().equalsIgnoreCase(countryName)).findFirst().orElse(null);
+        assert countryDetailResponse != null;
+        countryDetails = mapper.countryDetailsToCountryDetailResponse(countryDetailResponse);
 
         return countryDetails;
     }

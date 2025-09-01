@@ -1,0 +1,11 @@
+spring:
+  application:
+   name: country-app
+countryservice:
+ base:
+  url: https://restcountries.com/v3.1/all
+cache-manager:
+  caffeine-caches:
+   - cache-names: [CountryCache, CountryDetailsCache]
+     spec: initialCapacity=50,maximumSize=10,expireAfterAccess=300s
+

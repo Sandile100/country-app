@@ -52,15 +52,15 @@ class CountryControllerTest {
 
     @Test
     void getCountryDetails() {
-        List<CountryDetails> expected = Collections.emptyList();
-        when(countryService.getCountryDetails()).thenReturn(expected);
+        CountryDetails expected = new CountryDetails("any-name", 1000, "any-capital", "any-flag");
+        when(countryService.getCountryDetails(any())).thenReturn(expected);
 
-        ResponseEntity<List<CountryDetails>> response = countryController.getCountryDetails("any-name");
+        ResponseEntity<CountryDetails> response = countryController.getCountryDetails("any-name");
 
         assertNotNull(response);
         assertEquals(200, response.getStatusCode().value());
         assertSame(expected, response.getBody());
 
-        verify(countryService, times(1)).getCountryDetails();
+        verify(countryService, times(1)).getCountryDetails(any());
     }
 }

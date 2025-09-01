@@ -30,7 +30,7 @@ public class CountryController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/countries/{name}")
-    public ResponseEntity<List<CountryDetails>> getCountryDetails(@PathVariable String name) {
-     return  ResponseEntity.status(HttpStatus.OK).body(countryService.getCountryDetails());
+    public ResponseEntity<CountryDetails> getCountryDetails(@PathVariable String name) {
+     return  ResponseEntity.status(HttpStatus.OK).body(countryService.getCountryDetails(name));
     }
 }
